@@ -20,10 +20,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/phi-jp/rss-generator.git"
+    "url": "https://github.com/littledata/rss-generator.git"
   },
   "bugs": {
-    "url": "http://github.com/phi-jp/rss-generator/issues"
+    "url": "https://github.com/littledata/rss-generator/issues"
   },
   "testling": {
     "files": "test/*.js",
