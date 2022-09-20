@@ -1,6 +1,6 @@
 {
-  "name": "rss-generator",
-  "version": "0.0.3",
+  "name": "@littledata/rss",
+  "version": "1.0.0",
   "description": "RSS feed generator. Add RSS feeds to any project. Supports enclosures and GeoRSS.",
   "keywords": [
     "rss",
@@ -17,11 +17,6 @@
     "test": "tape test --tap | tap-difflet",
     "lint": "grunt lint",
     "test:browser": "prova -b"
-  },
-  "homepage": "http://github.com/phi-jp/rss-generator",
-  "author": {
-    "name": "phi",
-    "email": "phi1618jp@gmail.com"
   },
   "repository": {
     "type": "git",

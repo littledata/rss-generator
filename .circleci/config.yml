@@ -1,0 +1,102 @@
+version: 2.1
+
+orbs:
+  slack: circleci/slack@4.4.2
+  node: circleci/node@4.5.1
+  ld-common-circleci: littledata/ld-common-circleci@0.0.25
+
+slack-notifications: &slack-notifications
+  post-steps:
+    - ld-common-circleci/notify-fail
+jobs:
+  install_npm:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "package-lock.json" }}
+      - run:
+          name: Authenticate with registry
+          command: echo "//npm.pkg.github.com/:_authToken=$NPM_TOKEN" >> ./.npmrc
+      - node/install-packages
+      - save_cache:
+          key: deps-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+  lint:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "package-lock.json" }}
+      - run: CI=true npm run lint
+  test:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "package-lock.json" }}
+      - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+      - run: chmod +x ./cc-test-reporter
+      - run: ./cc-test-reporter before-build
+      - run:
+          command: CI=true npm run test -- --max-workers=2
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4096
+      - run: ./cc-test-reporter after-build  --coverage-input-type lcov --exit-code $?
+      - store_test_results:
+          path: coverage
+  deploy: &deploy
+    parameters:
+      stage:
+        type: string
+        default: staging
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "package-lock.json" }}
+      - run:
+          name: build
+          command: npm run build
+      - run:
+          name: Authenticate with registry
+          command: echo "//npm.pkg.github.com/:_authToken=$NPM_TOKEN" >> ./.npmrc
+      - run: chmod +x ./bin/publish.sh
+      - run:
+          name: Publish package
+          command: ./bin/publish.sh
+      - ld-common-circleci/notify
+  deploy_prod:
+    <<: *deploy
+workflows:
+  main:
+    jobs:
+      - install_npm
+      - test:
+          <<: *slack-notifications
+          requires:
+            - install_npm
+      - lint:
+          <<: *slack-notifications
+          requires:
+            - install_npm
+      - deploy_prod:
+          <<: *slack-notifications
+          stage: prod
+          requires:
+            - lint
+            - test
+            - install_npm
+          filters:
+            branches:
+              only: master
+          context: production
