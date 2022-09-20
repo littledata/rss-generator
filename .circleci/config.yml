@@ -25,33 +25,6 @@ jobs:
           key: deps-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
-  lint:
-    docker:
-      - image: circleci/node:12
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - deps-{{ checksum "yarn.lock" }}
-      - run: CI=true npm run lint
-  test:
-    docker:
-      - image: circleci/node:12
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - deps-{{ checksum "yarn.lock" }}
-      - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-      - run: chmod +x ./cc-test-reporter
-      - run: ./cc-test-reporter before-build
-      - run:
-          command: CI=true npm run test -- --max-workers=2
-          environment:
-            NODE_OPTIONS: --max_old_space_size=4096
-      - run: ./cc-test-reporter after-build  --coverage-input-type lcov --exit-code $?
-      - store_test_results:
-          path: coverage
   deploy: &deploy
     parameters:
       stage:
