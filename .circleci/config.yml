@@ -54,20 +54,10 @@ workflows:
   main:
     jobs:
       - install_npm
-      - test:
-          <<: *slack-notifications
-          requires:
-            - install_npm
-      - lint:
-          <<: *slack-notifications
-          requires:
-            - install_npm
       - deploy_prod:
           <<: *slack-notifications
           stage: prod
           requires:
-            - lint
-            - test
             - install_npm
           filters:
             branches:
