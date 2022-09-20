@@ -16,13 +16,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "package-lock.json" }}
+            - deps-{{ checksum "yarn.lock" }}
       - run:
           name: Authenticate with registry
           command: echo "//npm.pkg.github.com/:_authToken=$NPM_TOKEN" >> ./.npmrc
       - node/install-packages
       - save_cache:
-          key: deps-{{ checksum "package-lock.json" }}
+          key: deps-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
   lint:
@@ -32,7 +32,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "package-lock.json" }}
+            - deps-{{ checksum "yarn.lock" }}
       - run: CI=true npm run lint
   test:
     docker:
@@ -41,7 +41,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "package-lock.json" }}
+            - deps-{{ checksum "yarn.lock" }}
       - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
       - run: chmod +x ./cc-test-reporter
       - run: ./cc-test-reporter before-build
@@ -63,7 +63,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "package-lock.json" }}
+            - deps-{{ checksum "yarn.lock" }}
       - run:
           name: build
           command: npm run build
