@@ -1,6 +1,6 @@
 {
   "name": "@littledata/rss",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "RSS feed generator. Add RSS feeds to any project. Supports enclosures and GeoRSS.",
   "keywords": [
     "rss",

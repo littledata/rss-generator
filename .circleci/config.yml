@@ -16,42 +16,15 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "package-lock.json" }}
+            - deps-{{ checksum "yarn.lock" }}
       - run:
           name: Authenticate with registry
           command: echo "//npm.pkg.github.com/:_authToken=$NPM_TOKEN" >> ./.npmrc
-      - node/install-packages
+      - run: yarn install
       - save_cache:
-          key: deps-{{ checksum "package-lock.json" }}
+          key: deps-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
-  lint:
-    docker:
-      - image: circleci/node:12
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - deps-{{ checksum "package-lock.json" }}
-      - run: CI=true npm run lint
-  test:
-    docker:
-      - image: circleci/node:12
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - deps-{{ checksum "package-lock.json" }}
-      - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-      - run: chmod +x ./cc-test-reporter
-      - run: ./cc-test-reporter before-build
-      - run:
-          command: CI=true npm run test -- --max-workers=2
-          environment:
-            NODE_OPTIONS: --max_old_space_size=4096
-      - run: ./cc-test-reporter after-build  --coverage-input-type lcov --exit-code $?
-      - store_test_results:
-          path: coverage
   deploy: &deploy
     parameters:
       stage:
@@ -63,10 +36,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "package-lock.json" }}
-      - run:
-          name: build
-          command: npm run build
+            - deps-{{ checksum "yarn.lock" }}
       - run:
           name: Authenticate with registry
           command: echo "//npm.pkg.github.com/:_authToken=$NPM_TOKEN" >> ./.npmrc
@@ -81,20 +51,10 @@ workflows:
   main:
     jobs:
       - install_npm
-      - test:
-          <<: *slack-notifications
-          requires:
-            - install_npm
-      - lint:
-          <<: *slack-notifications
-          requires:
-            - install_npm
       - deploy_prod:
           <<: *slack-notifications
           stage: prod
           requires:
-            - lint
-            - test
             - install_npm
           filters:
             branches:
